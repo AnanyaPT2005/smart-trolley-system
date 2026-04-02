@@ -1,0 +1,20 @@
+{
+  "8901234567890": {
+    "name": "Amul Milk 1L",
+    "brand": "Amul",
+    "category": "Dairy",
+    "price": 28
+  },
+  "7845123098765": {
+    "name": "Lay's Classic Chips",
+    "brand": "Lay's",
+    "category": "Snacks",
+    "price": 20
+  },
+  "9234567812345": {
+    "name": "Tata Salt 1kg",
+    "brand": "Tata",
+    "category": "Groceries",
+    "price": 30
+  }
+}

@@ -1,0 +1,389 @@
+# from flask import Flask, render_template, jsonify, request
+# import firebase_admin
+# from firebase_admin import credentials, firestore
+
+# # Initialize Firebase
+# cred = credentials.Certificate("firebase_key.json")
+# firebase_admin.initialize_app(cred)
+
+# db = firestore.client()
+
+# app = Flask(__name__)
+
+# # 🔹 Pages
+# @app.route('/')
+# def login():
+#     return render_template('login.html')
+
+# @app.route('/billing')
+# def billing():
+#     return render_template('billing.html')
+
+
+# # 🔹 Dummy Data
+# cart_sessions = [
+#     {"session_id": "s1", "trolley_id": 1, "status": "active"},
+#     {"session_id": "s2", "trolley_id": 2, "status": "active"}
+# ]
+
+# cart_items = [
+#     {"session_id": "s1", "product_name": "Maggi", "price": 20, "quantity": 2},
+#     {"session_id": "s1", "product_name": "Milk", "price": 30, "quantity": 1},
+#     {"session_id": "s2", "product_name": "Bread", "price": 25, "quantity": 2}
+# ]
+
+
+# # 🔹 APIs
+# @app.route('/api/sessions')
+# def get_sessions():
+#     return jsonify(cart_sessions)
+
+# @app.route('/api/cart-items')
+# def get_items():
+#     session_id = request.args.get('session_id')
+#     items = [i for i in cart_items if i["session_id"] == session_id]
+#     return jsonify(items)
+
+# @app.route('/api/bill-session', methods=['POST'])
+# def bill_session():
+#     data = request.json
+#     session_id = data.get("session_id")
+
+#     global cart_sessions
+#     cart_sessions = [s for s in cart_sessions if s["session_id"] != session_id]
+
+#     return jsonify({"message": "Session billed"})
+
+# # 🔹 Inventory Page
+# @app.route('/inventory')
+# def inventory():
+#     return render_template('inventory.html')
+
+
+# # 🔹 Dummy Products Data
+# products = [
+#     {"name": "Maggi", "price": 20, "category": "noodles", "barcode": "111"},
+#     {"name": "Milk", "price": 30, "category": "dairy", "barcode": "222"},
+#     {"name": "Bread", "price": 25, "category": "bakery", "barcode": "333"}
+# ]
+
+# #this 
+# @app.route('/api/products')
+# def get_products():
+#     products_ref = db.collection('products')
+#     docs = products_ref.stream()
+
+#     products = []
+
+#     for doc in docs:
+#         data = doc.to_dict()
+#         products.append({
+#             "name": data.get("name"),
+#             "price": data.get("price"),
+#             "category": data.get("category"),
+#             "barcode": data.get("barcode")
+#         })
+
+#     return {"products": products}
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>Trolley</title>
+</head>
+<body>
+
+<button onclick="showOptions()">Take a Trolley</button>
+
+<div id="options" style="display:none;">
+  <button onclick="createSession('t1')">T1</button>
+  <button onclick="createSession('t2')">T2</button>
+  <button onclick="createSession('t3')">T3</button>
+</div>
+
+<p id="result"></p>
+
+<script>
+function showOptions() {
+  document.getElementById("options").style.display = "block";
+}
+
+async function createSession(trolleyId) {
+  const res = await fetch("/create-session", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ trolley_id: trolleyId })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    document.getElementById("result").innerText =
+      "Session ID: " + data.session_id;
+  } else {
+    document.getElementById("result").innerText =
+      "Error: " + data.error;
+  }
+}
+</script>
+
+</body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>Trolley</title>
+</head>
+<body>
+
+<button onclick="showOptions()">Take a Trolley</button>
+
+<h3 id="heading" style="display:none;">Trolleys Available</h3>
+
+<div id="options" style="display:none;">
+  <button id="t1" onclick="createSession('t1')">T1</button>
+  <button id="t2" onclick="createSession('t2')">T2</button>
+  <button id="t3" onclick="createSession('t3')">T3</button>
+</div>
+
+<p id="result"></p>
+
+<script>
+function showOptions() {
+  document.getElementById("options").style.display = "block";
+  document.getElementById("heading").style.display = "block";
+}
+
+async function createSession(trolleyId) {
+  const res = await fetch("/create-session", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ trolley_id: trolleyId })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    document.getElementById("result").innerText =
+      "✅ Session created: " + data.session_id;
+
+    // ❌ Remove selected trolley from UI
+    document.getElementById(trolleyId).style.display = "none";
+
+  } else {
+    document.getElementById("result").innerText =
+      "❌ " + data.error;
+
+    // ❌ If occupied, also hide it
+    if (data.error === "Trolley occupied") {
+      document.getElementById(trolleyId).style.display = "none";
+    }
+  }
+}
+</script> 
+
+</body>
+</html>
+
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Trolley</title>
+</head>
+<body>
+
+<div class="cart-session">
+
+  <button onclick="showOptions()">Take a Trolley</button>
+
+  <h3 id="heading" style="display:none;">Trolleys Available</h3>
+
+  <div id="options" style="display:none;">
+    <button id="t1" onclick="createSession('t1')">T1</button>
+    <button id="t2" onclick="createSession('t2')">T2</button>
+    <button id="t3" onclick="createSession('t3')">T3</button>
+  </div>
+
+  <p id="result"></p>
+
+</div>
+<h3>Cart Items (Test)</h3>
+
+<h3>Cart Items</h3>
+<div id="cartItems"></div>
+<!-- 🔻 Billing button OUTSIDE cart-session -->
+<button id="billingBtn" onclick="goToBilling()" style="display:none;">
+  Go to Billing
+</button>
+
+<p id="billingResult"></p>
+
+<script>
+let currentSessionId = null;
+let trolleyChosen = false;
+
+function showOptions() {
+  if (trolleyChosen) return; // 🚫 prevent choosing again
+
+  document.getElementById("options").style.display = "block";
+  document.getElementById("heading").style.display = "block";
+}
+
+// async function createSession(trolleyId) {
+//   if (trolleyChosen) return; // 🚫 lock after first selection
+
+//   const res = await fetch("/create-session", {
+//     method: "POST",
+//     headers: {"Content-Type": "application/json"},
+//     body: JSON.stringify({ trolley_id: trolleyId })
+//   });
+
+//   const data = await res.json();
+
+//   if (res.ok) {
+//     currentSessionId = data.session_id;
+//     trolleyChosen = true;
+
+//     document.getElementById("result").innerText =
+//       "✅ Session created: " + currentSessionId;
+
+//     // ❌ hide all trolley options
+//     document.getElementById("options").style.display = "none";
+
+//     // ✅ show billing button
+//     document.getElementById("billingBtn").style.display = "block";
+
+//   } else {
+//     document.getElementById("result").innerText =
+//       "❌ " + data.error;
+
+//     if (data.error === "Trolley occupied") {
+//       document.getElementById(trolleyId).style.display = "none";
+//     }
+//   }
+// }
+
+async function createSession(trolleyId) {
+  const res = await fetch("/create-session", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ trolley_id: trolleyId })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    currentSessionId = data.session_id;
+
+    // ✅ store session (optional but useful)
+    localStorage.setItem("session_id", currentSessionId);
+
+    // ✅ redirect to cart page
+    window.location.href = "/cart";
+
+  } else {
+    document.getElementById("result").innerText =
+      "❌ " + data.error;
+  }
+}
+
+function goToBilling() {
+  if (!currentSessionId) return;
+
+  document.getElementById("billingResult").innerText =
+    "➡ Go to cash counter | Session ID: " + currentSessionId;
+
+  // 🔥 OPTIONAL (for your friend later)
+  // Store session ID so billing page can use it
+  localStorage.setItem("session_id", currentSessionId);
+
+  // Example redirect (uncomment later)
+  // window.location.href = "/billing";
+}
+
+// async function deleteItem(barcode) {
+//   if (!currentSessionId) {
+//     alert("No active session");
+//     return;
+//   }
+
+//   try {
+//     const res = await fetch("/delete-item", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         session_id: currentSessionId,
+//         barcode: barcode
+//       })
+//     });
+
+//     const data = await res.json();
+
+//     if (!res.ok) {
+//       throw new Error(data.error || "Failed to delete item");
+//     }
+
+//     // ✅ Safely remove item from UI
+//     const itemElement = document.getElementById("item-" + barcode);
+//     if (itemElement) {
+//       itemElement.remove();
+//     }
+
+//     console.log("Item deleted:", barcode);
+
+//   } catch (error) {
+//     console.error(error);
+//     alert(error.message);
+//   }
+// }
+
+
+async function deleteItem(barcode) {
+  const res = await fetch("/delete-item", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ barcode: barcode })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    // remove from UI
+    document.getElementById("item-" + barcode).remove();
+  } else {
+    alert(data.error);
+  }
+}
+
+async function loadCartItems() {
+  if (!currentSessionId) return;
+
+  const res = await fetch(`/get-items/${currentSessionId}`);
+  const items = await res.json();
+
+  const container = document.getElementById("cartItems");
+  container.innerHTML = "";
+
+  items.forEach(item => {
+    const div = document.createElement("div");
+    div.id = "item-" + item.barcode;
+
+    div.innerHTML = `
+      ${item.name} (x${item.quantity})
+      <button onclick="deleteItem('${item.barcode}')">Delete</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+</script>
+
+</body>
+</html> -->

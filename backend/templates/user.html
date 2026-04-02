@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Select Trolley</h2>
+
+<form action="/create-session" method="POST">
+
+  {% if "t1" not in active_trolleys %}
+    <button name="trolley_id" value="t1">T1</button>
+  {% endif %}
+
+  {% if "t2" not in active_trolleys %}
+    <button name="trolley_id" value="t2">T2</button>
+  {% endif %}
+
+  {% if "t3" not in active_trolleys %}
+    <button name="trolley_id" value="t3">T3</button>
+  {% endif %}
+
+</form>
+
+</body>
+</html>

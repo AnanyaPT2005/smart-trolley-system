@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login & Register</title>
+</head>
+<body>
+
+<h2>Smart Trolley Authentication</h2>
+
+<!-- ROLE SELECTION -->
+<label>Select Role:</label>
+<select id="role">
+  <option value="user">User</option>
+  <option value="employee">Employee</option>
+</select>
+
+<br><br>
+
+<!-- COMMON FIELDS -->
+<input type="text" id="name" placeholder="Name (for register only)">
+<br><br>
+
+<input type="email" id="email" placeholder="Email">
+<br><br>
+
+<input type="password" id="password" placeholder="Password">
+<br><br>
+
+<!-- EMPLOYEE ONLY -->
+<input type="text" id="employee_id" placeholder="Employee ID (only for employee)">
+<br><br>
+
+<!-- BUTTONS -->
+<button onclick="login()">Login</button>
+<button onclick="registerUser()">Register</button>
+
+<p id="msg"></p>
+
+<script>
+
+
+
+function login() {
+  let role = document.getElementById("role").value;
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
+  let employee_id = document.getElementById("employee_id").value; // ✅ fixed
+
+  let url = role === "user" ? "/login-user" : "/login-employee";
+
+  let data = {
+    email: email,
+    password: password
+  };
+
+  if (role === "employee") {
+    data.employee_id = employee_id;
+  }
+
+  fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("msg").innerText = data.msg || data.error;
+
+    // ✅ REDIRECT AFTER LOGIN
+    if (data.msg) {
+      if (role === "user") {
+        window.location.href = "/user";
+      } else {
+        window.location.href = "/employee"; // ✅ FIXED
+      }
+    }
+  });
+}
+
+
+function registerUser() {
+  let role = document.getElementById("role").value;
+  let name = document.getElementById("name").value;
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
+  let employee_id = document.getElementById("employee_id").value;
+
+  let url = role === "user" ? "/register-user" : "/register-employee";
+
+  let data = {
+    name: name,
+    email: email,
+    password: password
+  };
+
+  if (role === "employee") {
+    data.employee_id = employee_id;
+  }
+
+  fetch(url, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("msg").innerText = data.msg || data.error;
+  });
+}
+</script>
+
+</body>
+</html>
