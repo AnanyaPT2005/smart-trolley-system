@@ -4,8 +4,7 @@
 // import 'barcode.dart';
 // import 'config.dart';
 
-// //8902979022682
-
+// // //8902979022682
 // class UserCartPage extends StatefulWidget {
 //   final String sessionId;
 
@@ -17,15 +16,18 @@
 
 // class _UserCartPageState extends State<UserCartPage> {
 //   List items = [];
+//   String? trolleyId; // ✅ fetched from backend
 
-//   final String baseUrl = AppConfig.baseUrl; // same as before
+//   final String baseUrl = AppConfig.baseUrl;
 
 //   @override
 //   void initState() {
 //     super.initState();
 //     fetchItems();
+//     fetchSessionInfo(); // ✅ new
 //   }
 
+//   // 🔥 fetch cart items
 //   Future<void> fetchItems() async {
 //     final response = await http.get(
 //       Uri.parse("$baseUrl/get-items/${widget.sessionId}"),
@@ -40,6 +42,27 @@
 //     }
 //   }
 
+//   // 🔥 fetch trolleyId using sessionId
+//   Future<void> fetchSessionInfo() async {
+//     try {
+//       final response = await http.get(
+//         Uri.parse("$baseUrl/session-info/${widget.sessionId}"),
+//       );
+
+//       if (response.statusCode == 200) {
+//         final data = json.decode(response.body);
+
+//         setState(() {
+//           trolleyId = data["trolley_id"];
+//         });
+//       } else {
+//         print("Failed to fetch session info");
+//       }
+//     } catch (e) {
+//       print("Error fetching session info: $e");
+//     }
+//   }
+
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
@@ -49,7 +72,7 @@
 //           children: [
 //             const Text("My Cart"),
 //             Text(
-//               "Trolley: ${widget.trolleyId}",
+//               "Trolley: ${trolleyId ?? 'Loading...'}",
 //               style: const TextStyle(fontSize: 12),
 //             ),
 //             Text(
@@ -66,7 +89,7 @@
 //               padding: const EdgeInsets.all(16),
 //               child: Column(
 //                 children: [
-//                   // 🔥 Table Header
+//                   // 🔥 Header
 //                   Row(
 //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
 //                     children: const [
@@ -86,7 +109,7 @@
 //                   ),
 //                   const Divider(),
 
-//                   // 🔥 Items List
+//                   // 🔥 Items
 //                   Expanded(
 //                     child: ListView.builder(
 //                       itemCount: items.length,
@@ -111,14 +134,20 @@
 //               ),
 //             ),
 
-//       // 🔁 Back to barcode
 //       bottomNavigationBar: Padding(
 //         padding: const EdgeInsets.all(16),
 //         child: SizedBox(
 //           height: 60,
 //           child: ElevatedButton(
 //             onPressed: () {
-//               Navigator.pop(context);
+//               Navigator.pushAndRemoveUntil(
+//                 context,
+//                 MaterialPageRoute(
+//                   builder: (context) =>
+//                       BarcodePage(sessionId: widget.sessionId),
+//                 ),
+//                 (route) => false, // 🔥 clears entire stack
+//               );
 //             },
 //             child: const Text("Add Item", style: TextStyle(fontSize: 18)),
 //           ),
@@ -145,7 +174,7 @@ class UserCartPage extends StatefulWidget {
 
 class _UserCartPageState extends State<UserCartPage> {
   List items = [];
-  String? trolleyId; // ✅ fetched from backend
+  String? trolleyId;
 
   final String baseUrl = AppConfig.baseUrl;
 
@@ -153,10 +182,9 @@ class _UserCartPageState extends State<UserCartPage> {
   void initState() {
     super.initState();
     fetchItems();
-    fetchSessionInfo(); // ✅ new
+    fetchSessionInfo();
   }
 
-  // 🔥 fetch cart items
   Future<void> fetchItems() async {
     final response = await http.get(
       Uri.parse("$baseUrl/get-items/${widget.sessionId}"),
@@ -171,7 +199,6 @@ class _UserCartPageState extends State<UserCartPage> {
     }
   }
 
-  // 🔥 fetch trolleyId using sessionId
   Future<void> fetchSessionInfo() async {
     try {
       final response = await http.get(
@@ -190,6 +217,45 @@ class _UserCartPageState extends State<UserCartPage> {
     } catch (e) {
       print("Error fetching session info: $e");
     }
+  }
+
+  // 🔥 NEW: update quantity
+  Future<void> updateQuantity(String barcode, String action) async {
+    await http.post(
+      Uri.parse("$baseUrl/update-quantity"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "barcode": barcode,
+        "action": action,
+        "session_id": widget.sessionId,
+      }),
+    );
+
+    fetchItems(); // refresh
+  }
+
+  // 🔥 NEW: delete item
+  Future<void> deleteItem(String barcode) async {
+    await http.post(
+      Uri.parse("$baseUrl/delete-item"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"barcode": barcode, "session_id": widget.sessionId}),
+    );
+
+    fetchItems(); // refresh
+  }
+
+  double getTotalPrice() {
+    double total = 0;
+
+    for (var item in items) {
+      final price = (item["price"] as num).toDouble();
+      final qty = (item["quantity"] as num).toInt();
+
+      total += price * qty;
+    }
+
+    return total;
   }
 
   @override
@@ -218,7 +284,7 @@ class _UserCartPageState extends State<UserCartPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // 🔥 Header
+                  // 🔥 Header (UPDATED)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: const [
@@ -234,25 +300,58 @@ class _UserCartPageState extends State<UserCartPage> {
                         "Price",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
+                      Text(
+                        "Del",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                   const Divider(),
 
-                  // 🔥 Items
+                  // 🔥 Items (UPDATED)
                   Expanded(
                     child: ListView.builder(
                       itemCount: items.length,
                       itemBuilder: (context, index) {
                         final item = items[index];
+                        final barcode = item["barcode"] ?? item["id"];
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
+                              // name
                               Text(item["name"]),
-                              Text(item["quantity"].toString()),
+
+                              // 🔥 qty controls
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove),
+                                    onPressed: () =>
+                                        updateQuantity(barcode, "decrease"),
+                                  ),
+                                  Text(item["quantity"].toString()),
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () =>
+                                        updateQuantity(barcode, "increase"),
+                                  ),
+                                ],
+                              ),
+
+                              // price
                               Text("₹${item["price"]}"),
+
+                              // 🔥 delete button
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => deleteItem(barcode),
+                              ),
                             ],
                           ),
                         );
@@ -265,21 +364,48 @@ class _UserCartPageState extends State<UserCartPage> {
 
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
-        child: SizedBox(
-          height: 60,
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      BarcodePage(sessionId: widget.sessionId),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 🔥 TOTAL PRICE
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Total:",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                (route) => false, // 🔥 clears entire stack
-              );
-            },
-            child: const Text("Add Item", style: TextStyle(fontSize: 18)),
-          ),
+                Text(
+                  "₹${getTotalPrice().toStringAsFixed(2)}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // 🔁 Add item button (unchanged)
+            SizedBox(
+              height: 60,
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          BarcodePage(sessionId: widget.sessionId),
+                    ),
+                    (route) => false,
+                  );
+                },
+                child: const Text("Add Item", style: TextStyle(fontSize: 18)),
+              ),
+            ),
+          ],
         ),
       ),
     );

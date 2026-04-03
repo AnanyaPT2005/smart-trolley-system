@@ -1,3 +1,5 @@
+#APP2.PY IS FLASK APP AND APP3.PY IS FLUTTER BACKEND<--please work on this file
+
 import firebase_admin
 from firebase_admin import credentials, initialize_app
 from firebase_admin import firestore
@@ -327,43 +329,80 @@ def get_items(session_id):
 
     return jsonify(items)
 
+# @app.route("/update-quantity", methods=["POST"])
+# def update_quantity():
+#     data = request.get_json()
+
+#     barcode = data.get("barcode")
+#     action = data.get("action")
+#     session_id = session.get("cart_session_id")
+
+#     if not session_id:
+#         return {"error": "No session"}, 400
+
+#     if action == "increase":
+#         increase_quantity(session_id, barcode)
+#     elif action == "decrease":
+#         decrease_quantity(session_id, barcode)
+
+#     return {"msg": "updated"}
+
 @app.route("/update-quantity", methods=["POST"])
 def update_quantity():
     data = request.get_json()
 
     barcode = data.get("barcode")
     action = data.get("action")
-    session_id = session.get("cart_session_id")
+    session_id = data.get("session_id")  # ✅ FIXED
 
     if not session_id:
-        return {"error": "No session"}, 400
+        return {"error": "No session_id provided"}, 400
 
-    if action == "increase":
-        increase_quantity(session_id, barcode)
-    elif action == "decrease":
-        decrease_quantity(session_id, barcode)
+    try:
+        if action == "increase":
+            increase_quantity(session_id, barcode)
+        elif action == "decrease":
+            decrease_quantity(session_id, barcode)
+        else:
+            return {"error": "Invalid action"}, 400
 
-    return {"msg": "updated"}
+        return {"msg": "updated"}, 200
 
+    except Exception as e:
+        return {"error": str(e)}, 400
 
+# @app.route("/delete-item", methods=["POST"])
+# def delete_item():
+#     data = request.get_json()
+#     barcode = data.get("barcode")
 
+#     session_id = session.get("cart_session_id")
+
+#     if not session_id:
+#         return {"error": "No active session"}, 400
+
+#     try:
+#         result = delete_cart_item(session_id, barcode)
+#         return result, 200
+#     except Exception as e:
+#         return {"error": str(e)}, 400
+    
 @app.route("/delete-item", methods=["POST"])
 def delete_item():
     data = request.get_json()
-    barcode = data.get("barcode")
 
-    session_id = session.get("cart_session_id")
+    barcode = data.get("barcode")
+    session_id = data.get("session_id")  # ✅ FIXED
 
     if not session_id:
-        return {"error": "No active session"}, 400
+        return {"error": "No session_id provided"}, 400
 
     try:
         result = delete_cart_item(session_id, barcode)
         return result, 200
+
     except Exception as e:
         return {"error": str(e)}, 400
-    
-
 
 @app.route("/go-to-billing", methods=["POST"])
 def go_to_billing():
