@@ -141,68 +141,6 @@ def employee():
     return render_template("billing.html")
 
 
-
-# @app.route("/create-session", methods=["POST"])
-# def create_session():
-#     if session.get("role") != "user":
-#         return "Unauthorized", 403
-
-#     trolley_id = request.form.get("trolley_id")
-#     # user_id = session.get("user_id")
-#     user_id = request.form.get("user_id") or session.get("user_id")
-
-#     try:
-#         session_id = create_cart_session(user_id, trolley_id)
-
-#         # ✅ store in Flask session
-#         session["cart_session_id"] = session_id
-#         session["trolley_id"] = trolley_id
-
-#         # ✅ ALSO store in Firestore (users collection)
-#         db = firestore.client()
-#         db.collection("users").document(user_id).update({
-#             "active_session_id": session_id
-#         })
-
-#         return redirect("/cart")
-
-    # except Exception as e:
-    #     return f"Error: {str(e)}"
-
-# @app.route("/create-session", methods=["POST"])
-# def create_session():
-#     from flask import request, jsonify
-#     from firebase_admin import firestore
-
-#     data = request.get_json()  # ✅ get JSON from Flutter
-
-#     trolley_id = data.get("trolley_id")
-#     user_id = data.get("user_id")
-
-#     # ✅ basic validation
-#     if not trolley_id or not user_id:
-#         return jsonify({"error": "Missing data"}), 400
-
-#     try:
-#         session_id = create_cart_session(user_id, trolley_id)
-
-#         # ✅ store in Firestore (users collection)
-#         db = firestore.client()
-#         db.collection("users").document(user_id).update({
-#             "active_session_id": session_id
-#         })
-
-#         # ✅ return JSON (not redirect)
-#         return jsonify({
-#             "message": "Session created",
-#             "session_id": session_id
-#         }), 200
-
-#     except Exception as e:
-#         return jsonify({
-#             "error": str(e)
-#         }), 400
-
 @app.route("/create-session", methods=["POST"])
 def create_session():
     from flask import request, jsonify
@@ -276,21 +214,6 @@ def debug_sessions():
     sessions = get_active_sessions()
     return {"active_sessions": sessions, "count": len(sessions)}
 
-# @app.route("/add-item", methods=["POST"])
-# def add_item():
-#     data = request.get_json()
-#     barcode = data.get("barcode")
-
-#     session_id = session.get("cart_session_id")
-
-#     if not session_id:
-#         return jsonify({"error": "No active session"}), 400
-
-#     try:
-#         add_item_to_cart(session_id, barcode)
-#         return jsonify({"msg": "Item added"}), 200
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 400
     
 @app.route("/add-item", methods=["POST"])
 def add_item():
@@ -329,23 +252,6 @@ def get_items(session_id):
 
     return jsonify(items)
 
-# @app.route("/update-quantity", methods=["POST"])
-# def update_quantity():
-#     data = request.get_json()
-
-#     barcode = data.get("barcode")
-#     action = data.get("action")
-#     session_id = session.get("cart_session_id")
-
-#     if not session_id:
-#         return {"error": "No session"}, 400
-
-#     if action == "increase":
-#         increase_quantity(session_id, barcode)
-#     elif action == "decrease":
-#         decrease_quantity(session_id, barcode)
-
-#     return {"msg": "updated"}
 
 @app.route("/update-quantity", methods=["POST"])
 def update_quantity():
@@ -370,23 +276,7 @@ def update_quantity():
 
     except Exception as e:
         return {"error": str(e)}, 400
-
-# @app.route("/delete-item", methods=["POST"])
-# def delete_item():
-#     data = request.get_json()
-#     barcode = data.get("barcode")
-
-#     session_id = session.get("cart_session_id")
-
-#     if not session_id:
-#         return {"error": "No active session"}, 400
-
-#     try:
-#         result = delete_cart_item(session_id, barcode)
-#         return result, 200
-#     except Exception as e:
-#         return {"error": str(e)}, 400
-    
+ 
 @app.route("/delete-item", methods=["POST"])
 def delete_item():
     data = request.get_json()
