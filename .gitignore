@@ -80,3 +80,5 @@ android/.gradle/
 android/app/build/
 ios/Pods/
 ios/.symlinks/
+
+serviceAccountKey2.json
