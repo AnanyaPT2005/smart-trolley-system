@@ -1,60 +1,15 @@
-// import 'package:flutter/material.dart';
-// import 'user_cart.dart';
-
-// class BarcodePage extends StatelessWidget {
-//   final String sessionId; // ✅ add this
-
-//   const BarcodePage({required this.sessionId, super.key}); // ✅ constructor
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text("Barcode")),
-
-//       body: Center(
-//         child: Text(
-//           "Barcode Page\nSession: $sessionId", // for testing
-//           textAlign: TextAlign.center,
-//           style: const TextStyle(fontSize: 24),
-//         ),
-//       ),
-
-//       bottomNavigationBar: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: SizedBox(
-//           height: 60,
-//           child: ElevatedButton(
-//             onPressed: () {
-//               Navigator.push(
-//                 context,
-//                 MaterialPageRoute(
-//                   builder: (context) =>
-//                       UserCartPage(sessionId: sessionId), // ✅ pass forward
-//                 ),
-//               );
-//             },
-//             child: const Text(
-//               "Go to Cart",
-//               style: TextStyle(fontSize: 18),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'config.dart';
 
 import 'user_cart.dart';
 
 class BarcodePage extends StatefulWidget {
   final String sessionId;
-
-  const BarcodePage({required this.sessionId, super.key});
+  
+  const BarcodePage({required this.sessionId,  super.key});
 
   @override
   State<BarcodePage> createState() => _BarcodePageState();
@@ -63,7 +18,7 @@ class BarcodePage extends StatefulWidget {
 class _BarcodePageState extends State<BarcodePage> {
   bool isScanning = true;
 
-  final String baseUrl = "http://192.168.1.6:5000"; // 🔁 change if needed
+  final String baseUrl = AppConfig.baseUrl; // 🔁 change if needed
 
   @override
   Widget build(BuildContext context) {
@@ -133,8 +88,10 @@ class _BarcodePageState extends State<BarcodePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            UserCartPage(sessionId: widget.sessionId),
+                        builder: (context) => UserCartPage(
+                          sessionId: widget.sessionId,
+                           // ✅ add this
+                        ),
                       ),
                     );
                   },

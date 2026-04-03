@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'barcode.dart';
+import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TrolleySelectionPage extends StatefulWidget {
@@ -12,7 +13,7 @@ class TrolleySelectionPage extends StatefulWidget {
 class _TrolleySelectionPageState extends State<TrolleySelectionPage> {
   List<String> activeTrolleys = [];
 
-  final String baseUrl = "http://192.168.1.6:5000"; // 🔁 change this
+  final String baseUrl = AppConfig.baseUrl; // 🔁 change this
   final String userId = "k0QikpYBAenGL7KaEmCR"; // 🔒 hardcoded for now
 
   @override
@@ -58,13 +59,23 @@ class _TrolleySelectionPageState extends State<TrolleySelectionPage> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
 
-      String sessionId = data["session_id"]; // ✅ EXTRACT from backend
+      String sessionId = data["session_id"];
 
+      //added user id here for persistance.
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setString('session_id', sessionId);
+      await prefs.setString('user_id', userId); // ✅ EXTRACT from backend
+
+      //-----------------
       await saveSession(sessionId);
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => BarcodePage(sessionId: sessionId),
+          builder: (context) => BarcodePage(
+            sessionId: sessionId,
+            // ✅ add this
+          ),
         ),
       );
     } else {
