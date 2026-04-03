@@ -486,5 +486,26 @@ def get_active_trolleys_api():
         print(data)
     return jsonify(active_trolleys)
 
+@app.route("/get-user-session/<user_id>", methods=["GET"])
+def get_user_session(user_id):
+    from firebase_admin import firestore
+    db = firestore.client()
+
+    user_doc = db.collection("users").document(user_id).get()
+
+    if not user_doc.exists:
+        return {"session_id": None}, 200
+
+    data = user_doc.to_dict()
+    session_id = data.get("active_session_id")
+
+    # 🔥 FIX HERE
+    if not session_id:
+        return {"session_id": None}, 200
+
+    return {"session_id": session_id}, 200
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+

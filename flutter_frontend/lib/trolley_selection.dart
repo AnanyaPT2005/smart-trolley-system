@@ -19,7 +19,37 @@ class _TrolleySelectionPageState extends State<TrolleySelectionPage> {
   @override
   void initState() {
     super.initState();
+    checkActiveSession();
     fetchActiveTrolleys();
+  }
+
+  Future<void> checkActiveSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('user_id');
+
+    if (userId == null) return;
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/get-user-session/$userId"),
+    );
+
+    if (response.statusCode != 200) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('session_id'); // 🔥 remove ghost
+    }
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data["session_id"] != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BarcodePage(sessionId: data["session_id"]),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> fetchActiveTrolleys() async {
@@ -69,7 +99,7 @@ class _TrolleySelectionPageState extends State<TrolleySelectionPage> {
 
       //-----------------
       await saveSession(sessionId);
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => BarcodePage(

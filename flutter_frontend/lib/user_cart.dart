@@ -269,12 +269,13 @@ class _UserCartPageState extends State<UserCartPage> {
           height: 60,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
                       BarcodePage(sessionId: widget.sessionId),
                 ),
+                (route) => false, // 🔥 clears entire stack
               );
             },
             child: const Text("Add Item", style: TextStyle(fontSize: 18)),
